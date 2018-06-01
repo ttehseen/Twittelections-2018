@@ -1,0 +1,35 @@
+---
+title: "Elections"
+author: "Taha"
+date: "6/1/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This is a fun big data anaytics project that seeks to uses sentiment analysis to analyse the popularity of political figures in Pakistan. Before we go into the analytics, let us get a bit of a background on the upcoming Pakistani elections. 
+
+### Background
+
+Pakistan is a parliamentary democratic republic with a bicameral legislature. Every five years the federal National Assembly alongside the provinical assemblies hold elections. Historically, a number of political parties have contested these elections but in recent times the most popular ones have been Pakistan Muslim League Nawaz (PMLN), Pakistan Tehrik-e-Insaf (PTI) and Pakistan People's Party (PPP). All three parties have their strongholds in different provinces of the country and contest elections for the national assembly every five years. The party with current majority in the National Assembly is PMLN while regionally PMLN, PTI and PPP have majorities in the Punjab, KPK and Sindh provincial assemblies.
+For the upcoming elections, all three parties have nominated a candidate for the post of the Prime Minister of Pakistan. The ex-cricketer turned politician Imran Khan is PTI's candidate, ex-Prime Minister's brother and popular Chief Minister of Punjab, Shehbaz Sharif is PMLN's nominee while PPP is backing their Chairman, the son and grandson of ex-Prime Ministers, Bilawal Bhutto.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
