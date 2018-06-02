@@ -7,6 +7,27 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(twitteR)
+library(httr)
+library(stringr)
+library(stopwords)
+library(wordcloud)
+library(RColorBrewer)
+library(tm)
+library(NLP)
+library(readr)
+library(ggplot2)
+
+consumerKey <- "HvOKEFjGtcpuk1ouI98g2PgSZ"
+consumerSecret <- "aqyG6vBSNiI5oFqN7NYPGL15JNSPSTKzF6XaCNKhJFxgGLIlvj"
+accessToken <- "1281002246-42XPq6eoFdTiCT8wrqfTxnnStqF7owSLvuEP8Cs"
+accessTokenSecret <- "iHbhhWNVrdQalJ0BYHpshhGvRYZXQ83lzsle1oBD7HNcx"
+
+setup_twitter_oauth (consumerKey, 
+                     consumerSecret, 
+                     accessToken, 
+                     accessTokenSecret)
+
 ```
 
 ## Introduction
@@ -16,20 +37,54 @@ This is a fun big data anaytics project that seeks to uses sentiment analysis to
 ### Background
 
 Pakistan is a parliamentary democratic republic with a bicameral legislature. Every five years the federal National Assembly alongside the provinical assemblies hold elections. Historically, a number of political parties have contested these elections but in recent times the most popular ones have been Pakistan Muslim League Nawaz (PMLN), Pakistan Tehrik-e-Insaf (PTI) and Pakistan People's Party (PPP). All three parties have their strongholds in different provinces of the country and contest elections for the national assembly every five years. The party with current majority in the National Assembly is PMLN while regionally PMLN, PTI and PPP have majorities in the Punjab, KPK and Sindh provincial assemblies.
+![Map of Pakistan. Source: SimpleMaps.com](https://simplemaps.com/static/svg/pk/pk.svg)
+
 For the upcoming elections, all three parties have nominated a candidate for the post of the Prime Minister of Pakistan. The ex-cricketer turned politician Imran Khan is PTI's candidate, ex-Prime Minister's brother and popular Chief Minister of Punjab, Shehbaz Sharif is PMLN's nominee while PPP is backing their Chairman, the son and grandson of ex-Prime Ministers, Bilawal Bhutto.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r out.width='33%', echo=FALSE}
+knitr::include_graphics(c('https://timesofindia.indiatimes.com/thumb/msid-63286527,width-400,resizemode-4/63286527.jpg','https://timesofindia.indiatimes.com/thumb/msid-62438429,width-400,resizemode-4/62438429.jpg','https://timesofislamabad.com/digital_images/medium/2017-04-04/bilawal-bhutto-lashes-out-at-pml-n-1513928280-5884.jpg'))
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
+## Getting the Data
+
+I gathered the required data from Twitter through the package `twitteR`. Note that there are other packages that would have worked- `rtweet` is another good one- but this one seems to do the job well enough.
+
+We begin by gathering the last 1500 tweets that have mentioned Imran Khan, Shehbaz Sharif and Bilawal Bhutto. A `getFeed()` creates a list of tweets for a given string and extracts the text from them. Applying it to our vector of candidates gives us the required twitter feeds for them.
+
+```{r candidates, echo=TRUE, cache=TRUE}
+candidates <- c("Imran Khan", "Shehbaz Sharif", "Bilawal Bhutto")
+
+getFeed <- function(candidate){
+  tweets<- searchTwitter(candidate, n=1500)
+  feed<- lapply(tweets, function(x){x$getText()})
+  return(feed)
+}
+
+candidates_feeds<- sapply(candidates, getFeed)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Let us check a tweet to see if we are on the right track.
+```{r imranTweet}
+feed_IK <- candidates_feeds[,"Imran Khan"]
+feed_IK[150]
+```
+Sounds about right. Now we can break down these tweets into individual words that we can then manipulate. A `getWords()` function that splits the strings along spaces will be a good way. Let's get all the words in tweets about Imran Khan using it.
+
+```{r initgetWords}
+getWords<- function(candidate){
+  feed <- candidates_feeds[,candidate]
+  wordList <- str_split(feed, ' ')
+  wordList <- unlist(wordList)
+  return(wordList)
+}
+
+words_IK <- getWords("Imran Khan")
+```
+
+Now you must be, rightly, wondering if we need to clean up this data. We do. Let's have a look at the most repeated words used for Imran Khan.
+
+```{r initWords}
+head(sort(table(words_IK), decreasing = TRUE))
+```

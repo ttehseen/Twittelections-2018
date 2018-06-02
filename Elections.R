@@ -1,11 +1,22 @@
 # installing packages
-install.packages("twitteR")
-library("twitteR")
-install.packages("base64enc")
-library(base64enc)
-library(httr)
+#install.packages("twitteR")
+#library("twitteR")
+#install.packages("base64enc")
+#library(base64enc)
+requiredPackages<-c("rtweet", "httr", "stringr", "stopwords", "wordcloud", "RColorBrewer", "tm", "NLP", 
+                    "readr", "ggplot2")
 install.packages("rtweet")
+install.packages("httr")
+install.packages("stringr")
+install.packages("stopwords")
+install.packages("wordcloud")
+install.packages("RColorBrewer")
+install.packages("tm")
+install.packages("NLP")
+install.packages("readr")
+install.packages("ggplot2")
 library(rtweet)
+library(httr)
 library(stringr)
 library(stopwords)
 library(wordcloud)
@@ -14,8 +25,6 @@ library(tm)
 library(NLP)
 library(readr)
 library(ggplot2)
-
-
 
 
 consumerKey <- "HvOKEFjGtcpuk1ouI98g2PgSZ"
@@ -34,7 +43,7 @@ setup_twitter_oauth (consumerKey,
 # potential candidates for Prime Ministership. We then extract
 # the text from the tweets.
 
-candidates <- c("Imran Khan", "Shehbaz Sharif", "Bilawal Bhutto", "Altaf Hussain")
+candidates <- c("Imran Khan", "Shehbaz Sharif", "Bilawal Bhutto")
 
 getFeed <- function(candidate){
   tweets<- searchTwitter(candidate, n=1500)
@@ -102,13 +111,11 @@ getWords <- function(candidate){
 }
 
 words_IK <- getWords("Imran Khan")
-words_SS <- getWords(feed_SS)
-words_AH <- getWords(feed_AH)
-words_BB <- getWords(feed_BB)
-set.seed(2)
+
+set.seed(1)
 makeWordCloud <- function(candidate){
   words <- getWords(candidate)
-  wordcloud(words, max.words = 200)
+  wordcloud(words, max.words = 100)
 }
 makeWordCloud("Imran Khan")
 
@@ -134,7 +141,6 @@ getOpinionScore <-  function(candidate){
 }
 getOpinionScore("Imran Khan")
 getOpinionScore("Shehbaz Sharif")
-getOpinionScore("Altaf Hussain")
 getOpinionScore("Bilawal Bhutto")
 
 scores <- sapply(candidates, getOpinionScore)

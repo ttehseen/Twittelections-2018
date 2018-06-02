@@ -1,0 +1,12 @@
+base
+rtweet
+httr
+stringr
+stopwords
+RColorBrewer
+wordcloud
+NLP
+tm
+readr
+ggplot2
+twitteR
