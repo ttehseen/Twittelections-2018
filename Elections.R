@@ -5,7 +5,7 @@
 #library(base64enc)
 requiredPackages<-c("rtweet", "httr", "stringr", "stopwords", "wordcloud", "RColorBrewer", "tm", "NLP", 
                     "readr", "ggplot2")
-install.packages("rtweet")
+install.packages("twitteR")
 install.packages("httr")
 install.packages("stringr")
 install.packages("stopwords")
@@ -15,12 +15,12 @@ install.packages("tm")
 install.packages("NLP")
 install.packages("readr")
 install.packages("ggplot2")
-library(rtweet)
+library(twitteR)
 library(httr)
 library(stringr)
 library(stopwords)
-library(wordcloud)
 library(RColorBrewer)
+library(wordcloud)
 library(tm)
 library(NLP)
 library(readr)
@@ -47,7 +47,7 @@ candidates <- c("Imran Khan", "Shehbaz Sharif", "Bilawal Bhutto")
 
 getFeed <- function(candidate){
   tweets<- searchTwitter(candidate, n=1500)
-  feed<- lapply(tweets, function(x){x$getText()})
+  feed<- lapply(no_retweets, function(x){x$getText()})
   return(feed)
 }
 
@@ -115,8 +115,9 @@ words_IK <- getWords("Imran Khan")
 set.seed(1)
 makeWordCloud <- function(candidate){
   words <- getWords(candidate)
-  wordcloud(words, max.words = 100)
+  wordcloud(words, max.words = 75)
 }
+sapply(candidates, makeWordCloud)
 makeWordCloud("Imran Khan")
 
 # With that visualization out of the way, let us now focus on qualifying public sentiment 

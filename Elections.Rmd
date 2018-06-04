@@ -2,7 +2,10 @@
 title: "Elections"
 author: "Taha"
 date: "6/1/2018"
-output: html_document
+output:
+  html_document: 
+    fig_caption: yes
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,8 +14,8 @@ library(twitteR)
 library(httr)
 library(stringr)
 library(stopwords)
-library(wordcloud)
 library(RColorBrewer)
+library(wordcloud)
 library(tm)
 library(NLP)
 library(readr)
@@ -83,8 +86,53 @@ getWords<- function(candidate){
 words_IK <- getWords("Imran Khan")
 ```
 
-Now you must be, rightly, wondering if we need to clean up this data. We do. Let's have a look at the most repeated words used for Imran Khan.
+Now you must be, rightly, wondering if we need to clean up this data. We do. Let's have a look at the most repeated words used in tweets related to Imran Khan.
 
 ```{r initWords}
 head(sort(table(words_IK), decreasing = TRUE))
 ```
+As we can see the most repeated words are Imran Khan's name, 'RT' for retweet and a few commonly used stop words. These are not very insightful and should be removed before any analysis. In addition let us look at a random range of words in the vector.
+```{r randomWordsForIK}
+sort(table(words_IK), decreasing = TRUE)[100:120]
+```
+We can see that the data is infested with punctuation marks, numbers, hastags, etc. Some tweets are in Urdu, Punjabi and other regional scripts which can not be process. In addition, the words are case sensitive as of now which is highly unnecessary. Finally there must be a lot of words smaller than 3 characters that will probably not be very insightful. We need to rid the data of all these.
+Thus, we need to modify our `getWords()` function.
+```{r modifiedGetWords}
+
+getWords <- function(candidate){
+  feed <- candidates_feeds[,candidate]
+  words <- str_split(feed, ' ')
+  words <- unlist(words)
+  words <- sub("^*[[:punct:]]", "", words)
+  words <- sub("[[:punct:]]*$", "", words)
+  # Remove Urdu words
+  removeIdx <- which(grepl("[^A-Za-z]", words))
+  if (length(removeIdx) > 0){
+    words <- words[-removeIdx]  
+  }
+  # Make lower caps
+  words <- tolower(words)
+  # Remove candidate name, stop words and empty strings.
+  candidateName <- tolower(unlist(strsplit(candidate, split = " ")))
+  wordsToRemove <- c(stopwords(), candidateName, "RT")
+  words <- words[!(words %in% wordsToRemove) & (words != "") & nchar(words)>2]
+  
+  return(words)
+}
+```
+Now we should have clean data to begin our analyses. We can firstly begin by visualizing what were the most used words for these candidates. One way to do that is through a world cloud of the output of our `getWords()` function.
+```{r makeWordCloud function, echo=FALSE, warning=FALSE}
+makeWordCloud <- function(candidate){
+  pal <- brewer.pal(8,"Spectral")
+  words <- getWords(candidate)
+  wordcloud(words, max.words = Inf, colors = pal, random.order = F, random.color = F)
+  makeWordCloud('Shehbaz Sharif')
+}
+```
+```{r wClouds, warning=F}
+
+makeWordCloud('Imran Khan')
+
+```
+
+

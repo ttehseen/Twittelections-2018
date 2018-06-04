@@ -1,0 +1,17 @@
+base
+methods
+datasets
+utils
+grDevices
+graphics
+stats
+twitteR
+httr
+stringr
+stopwords
+RColorBrewer
+wordcloud
+NLP
+tm
+readr
+ggplot2
