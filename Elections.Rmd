@@ -42,6 +42,7 @@ This is a fun big data anaytics project that seeks to uses sentiment analysis to
 Pakistan is a parliamentary democratic republic with a bicameral legislature. Every five years the federal National Assembly alongside the provinical assemblies hold elections. Historically, a number of political parties have contested these elections but in recent times the most popular ones have been Pakistan Muslim League Nawaz (PMLN), Pakistan Tehrik-e-Insaf (PTI) and Pakistan People's Party (PPP). All three parties have their strongholds in different provinces of the country and contest elections for the national assembly every five years. The party with current majority in the National Assembly is PMLN while regionally PMLN, PTI and PPP have majorities in the Punjab, KPK and Sindh provincial assemblies.
 ![Map of Pakistan. Source: SimpleMaps.com](https://simplemaps.com/static/svg/pk/pk.svg)
 
+
 For the upcoming elections, all three parties have nominated a candidate for the post of the Prime Minister of Pakistan. The ex-cricketer turned politician Imran Khan is PTI's candidate, ex-Prime Minister's brother and popular Chief Minister of Punjab, Shehbaz Sharif is PMLN's nominee while PPP is backing their Chairman, the son and grandson of ex-Prime Ministers, Bilawal Bhutto.
 ```{r out.width='33%', echo=FALSE}
 knitr::include_graphics(c('https://timesofindia.indiatimes.com/thumb/msid-63286527,width-400,resizemode-4/63286527.jpg','https://timesofindia.indiatimes.com/thumb/msid-62438429,width-400,resizemode-4/62438429.jpg','https://timesofislamabad.com/digital_images/medium/2017-04-04/bilawal-bhutto-lashes-out-at-pml-n-1513928280-5884.jpg'))
@@ -51,6 +52,8 @@ knitr::include_graphics(c('https://timesofindia.indiatimes.com/thumb/msid-632865
 
 
 ## Getting the Data
+
+![Twitter Pakistan](519438473b08e0ebbe17f53e6fdec950.jpg)
 
 I gathered the required data from Twitter through the package `twitteR`. Note that there are other packages that would have worked- `rtweet` is another good one- but this one seems to do the job well enough.
 
