@@ -47,7 +47,7 @@ candidates <- c("Imran Khan", "Shehbaz Sharif", "Bilawal Bhutto")
 
 getFeed <- function(candidate){
   tweets<- searchTwitter(candidate, n=1500)
-  feed<- lapply(no_retweets, function(x){x$getText()})
+  feed<- lapply(tweets, function(x){x$getText()})
   return(feed)
 }
 
@@ -61,14 +61,13 @@ feed_IK[150]
 
 # Now we can break down these tweets into individual words that we can
 # then manipulate
-getWords<- function(candidate){
-  feed <- candidates_feeds[,candidate]
+getWords<- function(feed){
   wordList <- str_split(feed, ' ')
   wordList <- unlist(wordList)
   return(wordList)
 }
 
-words_IK <- getWords("Imran Khan")
+words_IK <- getWords(getFeed("Imran Khan"))
 
 # Now we bet our data needs some cleaning. Let's have a look.
 head(sort(table(words_IK), decreasing = TRUE))
@@ -89,8 +88,7 @@ sort(table(words_IK), decreasing = TRUE)[100:120]
 # not be very insightful.
 # Thus we can modify our getWords function to the following:
 
-getWords <- function(candidate){
-  feed <- candidates_feeds[,candidate]
+getWords <- function(feed){
   words <- str_split(feed, ' ')
   words <- unlist(words)
   words <- sub("^*[[:punct:]]", "", words)
@@ -103,14 +101,14 @@ getWords <- function(candidate){
   # Make lower caps
   words <- tolower(words)
   # Remove candidate name, stop words and empty strings.
-  candidateName <- tolower(unlist(strsplit(candidate, split = " ")))
-  wordsToRemove <- c(stopwords(), candidateName, "RT")
+  # candidateName <- tolower(unlist(strsplit(candidate, split = " ")))
+  wordsToRemove <- c(stopwords(), "RT")
   words <- words[!(words %in% wordsToRemove) & (words != "") & nchar(words)>2]
   
   return(words)
 }
 
-words_IK <- getWords("Imran Khan")
+words_IK <- getWords(getFeed("Imran Khan"))
 
 set.seed(1)
 makeWordCloud <- function(candidate){
@@ -148,5 +146,72 @@ scores <- sapply(candidates, getOpinionScore)
 names(scores) <- NULL
 scoresdf<-data.frame(Candidate = candidates, 
            Score = scores)
-ggplot(scoresdf, aes(x=Candidate, weight=Score))+
-  geom_bar(fill="dark green") 
+ggplot(scoresdf, aes(x=Candidate, weight=Score)) +
+  geom_bar(fill="dark green") + 
+  ylim(c(-800,800)) + 
+  ylab("Score")
+
+# Another useful analysis could be to see how their popularity has changed over time. Since Twitter's
+# API only lets us fetch tweets from the past 7 days, we will visualize data for the past week. Firstly,
+# we define a function `getTimeFeed()` that creates a list of daily feeds for each candidate over the past
+# week.
+
+getTimedFeed <- function(day, candidate){
+  tweets<- searchTwitter(candidate, n=1300, until = day, since = toString(ymd(day) - days(1)) )
+  feed<- lapply(tweets, function(x){x$getText()})
+  return(feed)
+}
+lastWeek <- rep(0,7)
+for (i in 0:7) {
+  lastWeek[i] <- toString(today() - days(i))
+}
+Imran_timed_feeds <- sapply(lastWeek, getTimedFeed, candidate = "Imran Khan")
+
+getWords <- function(feed){
+  words <- str_split(feed, ' ')
+  words <- unlist(words)
+  words <- sub("^*[[:punct:]]", "", words)
+  words <- sub("[[:punct:]]*$", "", words)
+  # Remove Urdu words
+  removeIdx <- which(grepl("[^A-Za-z]", words))
+  if (length(removeIdx) > 0){
+    words <- words[-removeIdx]  
+  }
+  # Make lower caps
+  words <- tolower(words)
+  # Remove candidate name, stop words and empty strings.
+  wordsToRemove <- c(stopwords(), "RT")
+  words <- words[!(words %in% wordsToRemove) & (words != "") & nchar(words)>2]
+  
+  return(words)
+}
+
+
+Imran_timed_feeds <- sapply(lastWeek, getTimedFeed, candidate = "Imran Khan")
+Immi_list <- apply(Imran_timed_feeds, 2, getWords)
+Bilawal_timed_feeds <- sapply(lastWeek, getTimedFeed, candidate = "Bilawal Bhutto")
+Bilawal_list <- apply(Bilawal_timed_feeds, 2, getWords)
+Shehbaz_timed_feeds <- sapply(lastWeek, getTimedFeed, candidate = "Shehbaz Sharif")
+Shehbaz_list <- apply(Shehbaz_timed_feeds, 2, getWords)
+scores <- data.frame(sapply(Immi_list, getOpinionScore), sapply(Bilawal_list, getOpinionScore), 
+                     sapply(Shehbaz_list, getOpinionScore))
+
+
+
+ggplot(data = scores2, aes(1:length(value), value, colour= variable)) + 
+  geom_point() + 
+  geom_line() +
+  geom_smooth(method = "loess", line="dashed")
+
+
+barplot(scores)
+getOpinionScore <-  function(words){
+  positiveMatches <- match(words, positive_words)
+  negativeMatches <- match(words, negative_words)
+  positiveMatches <- !is.na(positiveMatches)
+  negativeMatches <- !is.na(negativeMatches)
+  score <- sum(positiveMatches) - sum(negativeMatches)
+  return(score)
+}
+
+

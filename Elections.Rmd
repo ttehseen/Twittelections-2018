@@ -39,7 +39,7 @@ This is a fun big data anaytics project that seeks to uses sentiment analysis to
 
 ### Background
 
-Pakistan is a parliamentary democratic republic with a bicameral legislature. Every five years the federal National Assembly alongside the provinical assemblies hold elections. Historically, a number of political parties have contested these elections but in recent times the most popular ones have been Pakistan Muslim League Nawaz (PMLN), Pakistan Tehrik-e-Insaf (PTI) and Pakistan People's Party (PPP). All three parties have their strongholds in different provinces of the country and contest elections for the national assembly every five years. The party with current majority in the National Assembly is PMLN while regionally PMLN, PTI and PPP have majorities in the Punjab, KPK and Sindh provincial assemblies.
+Pakistan is a parliamentary democratic republic with a bicameral legislature. Every five years the federal National Assembly alongside the provinical assemblies holds elections. Historically, a number of political parties have contested these elections but in recent times the most popular ones have been Pakistan Muslim League Nawaz (PMLN), Pakistan Tehrik-e-Insaf (PTI) and Pakistan People's Party (PPP). All three parties have their strongholds in different provinces of the country and contest elections for the national assembly every five years. The party with current majority in the National Assembly is PMLN while regionally PMLN, PTI and PPP have majorities in the Punjab, KPK and Sindh provincial assemblies.
 ![Map of Pakistan. Source: SimpleMaps.com](https://simplemaps.com/static/svg/pk/pk.svg)
 
 For the upcoming elections, all three parties have nominated a candidate for the post of the Prime Minister of Pakistan. The ex-cricketer turned politician Imran Khan is PTI's candidate, ex-Prime Minister's brother and popular Chief Minister of Punjab, Shehbaz Sharif is PMLN's nominee while PPP is backing their Chairman, the son and grandson of ex-Prime Ministers, Bilawal Bhutto.
@@ -54,7 +54,7 @@ knitr::include_graphics(c('https://timesofindia.indiatimes.com/thumb/msid-632865
 
 I gathered the required data from Twitter through the package `twitteR`. Note that there are other packages that would have worked- `rtweet` is another good one- but this one seems to do the job well enough.
 
-We begin by gathering the last 1500 tweets that have mentioned Imran Khan, Shehbaz Sharif and Bilawal Bhutto. A `getFeed()` creates a list of tweets for a given string and extracts the text from them. Applying it to our vector of candidates gives us the required twitter feeds for them.
+I began by gathering the last 1500 tweets that have mentioned Imran Khan, Shehbaz Sharif and Bilawal Bhutto. The `getFeed()` function creates a list of tweets for a given string and extracts the text from them. Applying it to our vector of candidates gives us the required twitter feeds for them.
 
 ```{r candidates, echo=TRUE, cache=TRUE}
 candidates <- c("Imran Khan", "Shehbaz Sharif", "Bilawal Bhutto")
@@ -73,7 +73,7 @@ Let us check a tweet to see if we are on the right track.
 feed_IK <- candidates_feeds[,"Imran Khan"]
 feed_IK[150]
 ```
-Sounds about right. Now we can break down these tweets into individual words that we can then manipulate. A `getWords()` function that splits the strings along spaces will be a good way. Let's get all the words in tweets about Imran Khan using it.
+Sounds about right. Now we can break down these tweets into individual words that we can then manipulate. A `getWords()` function that splits the strings along spaces is a good bet. Let's use it to get all the words for Imran Khan.
 
 ```{r initgetWords}
 getWords<- function(candidate){
@@ -91,11 +91,11 @@ Now you must be, rightly, wondering if we need to clean up this data. We do. Let
 ```{r initWords}
 head(sort(table(words_IK), decreasing = TRUE))
 ```
-As we can see the most repeated words are Imran Khan's name, 'RT' for retweet and a few commonly used stop words. These are not very insightful and should be removed before any analysis. In addition let us look at a random range of words in the vector.
+As we can see the most repeated words are Imran Khan's name, 'RT' for retweet and a few commonly used stop words. These are not very insightful and should be removed before any analysis. Let us look at a random range of words in the vector to see if further cleaning is required.
 ```{r randomWordsForIK}
 sort(table(words_IK), decreasing = TRUE)[100:120]
 ```
-We can see that the data is infested with punctuation marks, numbers, hastags, etc. Some tweets are in Urdu, Punjabi and other regional scripts which can not be process. In addition, the words are case sensitive as of now which is highly unnecessary. Finally there must be a lot of words smaller than 3 characters that will probably not be very insightful. We need to rid the data of all these.
+We can see that the data is infested with punctuation marks, numbers, hastags, etc. Some tweets are in Urdu, Punjabi and other regional scripts which can not be process. In addition, some words are unnecessarily capitalized while others are not. Finally there must be a lot of words smaller than 3 characters that will probably not be very insightful. We need to rid the data of all these.
 Thus, we need to modify our `getWords()` function.
 ```{r modifiedGetWords}
 
@@ -114,25 +114,58 @@ getWords <- function(candidate){
   words <- tolower(words)
   # Remove candidate name, stop words and empty strings.
   candidateName <- tolower(unlist(strsplit(candidate, split = " ")))
-  wordsToRemove <- c(stopwords(), candidateName, "RT")
+  wordsToRemove <- c(stopwords(), candidateName, "RT", c("ppp","pti","pmln", "chairman"))
   words <- words[!(words %in% wordsToRemove) & (words != "") & nchar(words)>2]
   
   return(words)
 }
 ```
 Now we should have clean data to begin our analyses. We can firstly begin by visualizing what were the most used words for these candidates. One way to do that is through a world cloud of the output of our `getWords()` function.
-```{r makeWordCloud function, echo=FALSE, warning=FALSE}
+```{r makeWordCloud function, echo=TRUE, warning=FALSE}
 makeWordCloud <- function(candidate){
   pal <- brewer.pal(8,"Spectral")
   words <- getWords(candidate)
-  wordcloud(words, max.words = Inf, colors = pal, random.order = F, random.color = F)
-  makeWordCloud('Shehbaz Sharif')
+  wordcloud(words, max.words = 80, colors = pal, random.order = F, random.color = F, scale=c(3.5,0.1))
 }
-```
-```{r wClouds, warning=F}
-
-makeWordCloud('Imran Khan')
-
+makeWordCloud('Bilawal Bhutto')
+makeWordCloud('Shehbaz Sharif')
+makeWordCloud("Imran Khan")
 ```
 
+With that visualization out of the way, let us now focus on qualifying public sentiment towards these three leaders. We will try to give each one of them a score based on the tone of the tweets about them. We will do this by comparing them with an appendum of positive and negative words compiled by XXXXX.
+
+```{r opinionWords, echo=T}
+
+positive_words <- scan('~/Downloads/positive-words.txt',
+           what='character', comment.char=';')
+negative_words <- scan('~/Downloads/negative-words.txt',
+           what='character', comment.char=';')
+getOpinionScore <-  function(candidate){
+  words <- getWords(candidate)
+  positiveMatches <- match(words, positive_words)
+  negativeMatches <- match(words, negative_words)
+  positiveMatches <- !is.na(positiveMatches)
+  negativeMatches <- !is.na(negativeMatches)
+  score <- sum(positiveMatches) - sum(negativeMatches)
+  return(score)
+}
+scores <- sapply(candidates, getOpinionScore)
+scores
+```
+Let us display this in a nice bar plot.
+```{r barPlots}
+scoresdf<-data.frame(Candidate = candidates, 
+           Score = scores) 
+ggplot(scoresdf, aes(x=Candidate, weight=Score))+
+  geom_bar(fill="dark green") + ylim(c(-800, 800))
+
+```
+
+Seems like people have a somewhat neutral opinion of Imran Khan and Shehbaz Sharif while Bilawal Bhutto seems very unpopular. This does in fact align with recent results that show the Imran Khan's and Shehbaz Sharif's parties have performed far better in polls including in the last general election 5 years ago.
+
+We can now move on to chart how the popularity of each candidate has varied over the years.
+
+```{r}
+
+```
 
